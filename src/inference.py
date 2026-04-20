@@ -5,9 +5,9 @@ from config import NUMERICAL_FEATURES, CATEGORICAL_FEATURES
 
 def load_artifacts():
     """Loads the pre-trained model and preprocessors."""
-    fair_model = joblib.load('artifacts/fair_model.joblib')
-    scaler = joblib.load('artifacts/scaler.joblib')
-    label_encoders = joblib.load('artifacts/label_encoders.joblib')
+    fair_model = joblib.load('checkpoints/fair_model.joblib')
+    scaler = joblib.load('checkpoints/scaler.joblib')
+    label_encoders = joblib.load('checkpoints/label_encoders.joblib')
     return fair_model, scaler, label_encoders
 
 def predict_new_data(new_data_df, sensitive_features_series):
