@@ -1,0 +1,9 @@
+feature,mean_abs_shap,rank
+priors_count,0.10269287285380212,1
+charge_degree_F,0.027370935202439616,2
+juv_other_count,0.027242182015758704,3
+days_b_screening_arrest,0.020694029426308127,4
+jail_time_days,0.02007216856705701,5
+juv_misd_count,0.011806556923259501,6
+c_days_from_compas,0.005363110174024996,7
+juv_fel_count,0.0051974439184143415,8

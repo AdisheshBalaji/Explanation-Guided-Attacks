@@ -1,0 +1,9 @@
+feature,mean_abs_lime,rank
+juv_other_count,0.15514399231022893,1
+days_b_screening_arrest,0.12974824785217184,2
+c_days_from_compas,0.12728548727882388,3
+juv_misd_count,0.11460147822940168,4
+juv_fel_count,0.09554646991367756,5
+priors_count,0.08269831324587983,6
+jail_time_days,0.02612770262897567,7
+charge_degree_F,0.024500367124605998,8
