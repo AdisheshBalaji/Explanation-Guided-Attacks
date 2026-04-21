@@ -1,0 +1,7 @@
+OOD CLASSIFIER - FINAL TEST METRICS
+-----------------------------------
+accuracy    : 0.9994
+f1          : 0.9994
+precision   : 0.9988
+recall      : 1.0000
+roc_auc     : 1.0000
