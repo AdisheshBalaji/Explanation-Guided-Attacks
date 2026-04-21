@@ -15,6 +15,7 @@ from fairlearn.metrics import demographic_parity_difference
 import shap
 import lime
 import lime.lime_tabular
+from sklearn.cluster import KMeans
 
 from config import (
     SEED, TARGET_COL,
@@ -132,7 +133,7 @@ def explain_lime_adversarial(model: ScaffoldingClassifier,
     ax.set_xlabel("Mean |LIME weight|")
     ax.set_title("LIME Feature Importances — Adversarial Model F(x)")
     plt.tight_layout()
-    plt.savefig("lime_adversarial_model.png", dpi=150)
+    plt.savefig("./logs/lime_adversarial_model.png", dpi=150)
     plt.close()
     print("Saved lime_adversarial_model.png")
 
@@ -145,8 +146,21 @@ def explain_shap_adversarial(model: ScaffoldingClassifier,
                               n_background: int = 100,
                               n_explain: int = 200):
     print("\n[SHAP] Computing SHAP values for F(x) …")
-    background  = shap.sample(X_train, n_background, random_state=SEED)
-    explainer   = shap.KernelExplainer(model.predict_proba, background)
+
+    # 1. Generate the K-Means background
+    kmeans = KMeans(n_clusters=10, random_state=SEED, n_init='auto')
+    kmeans.fit(X_train)
+    background_df = pd.DataFrame(kmeans.cluster_centers_, columns=X_train.columns)
+
+    # ====================================================================
+    # THE FIX: Cast the background distribution to match X_train dtypes
+    # exactly like you did in create_ood_samples!
+    # ====================================================================
+    for col in X_train.columns:
+        background_df[col] = background_df[col].astype(X_train[col].dtype)
+
+    # 2. Pass the corrected background to KernelExplainer
+    explainer = shap.KernelExplainer(model.predict_proba, background_df)
 
     X_explain   = X_test.iloc[:n_explain]
     shap_values = explainer.shap_values(X_explain, silent=True)
@@ -157,6 +171,7 @@ def explain_shap_adversarial(model: ScaffoldingClassifier,
         sv = shap_values[:, :, 1]
     else:
         sv = shap_values
+        
     mean_abs = pd.Series(np.abs(sv).mean(axis=0), index=X_train.columns)
     mean_abs = mean_abs.sort_values(ascending=False)
 
@@ -172,7 +187,6 @@ def explain_shap_adversarial(model: ScaffoldingClassifier,
     print(" Saved shap_adversarial_model.png")
 
     return mean_abs
-
 
 # ---------------------------------------------------------------------------
 # Comparison printer
@@ -193,7 +207,7 @@ def print_importance_comparison(lime_fair, shap_fair, lime_adv, shap_adv):
         sa = shap_adv.get(feat, 0.0)
         print(f"  {feat:<22} {lf:>10.4f} {la:>10.4f} {sf:>10.4f} {sa:>10.4f}")
     print(f"{'='*65}")
-    print("  ↑ race importance should be much higher in the adversarial model")
+    print("race importance should be much higher in the adversarial model")
 
 
 # ---------------------------------------------------------------------------

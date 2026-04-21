@@ -26,11 +26,7 @@ import matplotlib.pyplot as plt
 # Hyper-parameters
 # ---------------------------------------------------------------------------
 RF_PARAMS = dict(
-    n_estimators=300,
-    max_depth=None,          # grow full trees — OOD boundary can be complex
-    min_samples_leaf=2,
-    max_features="sqrt",
-    class_weight="balanced", # guards against any residual class imbalance
+    n_estimators=100,
     random_state=SEED,
     n_jobs=-1,
 )
@@ -105,7 +101,7 @@ def train_ood_classifier(X_train_indist: pd.DataFrame,
                          noise_std: float = OOD_NOISE_STD,
                          save_path: str = "ood_classifier.pkl"):
     # Build Dataset and Split
-    X_combined, y_combined = build_ood_dataset(X_train_indist, noise_std=noise_std)
+    X_combined, y_combined = build_ood_dataset(X_train_indist)
     X_tr, X_te, y_tr, y_te = train_test_split(
         X_combined, y_combined, test_size=OOD_TEST_SIZE, 
         random_state=SEED, stratify=y_combined
