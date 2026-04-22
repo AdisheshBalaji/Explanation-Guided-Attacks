@@ -18,32 +18,34 @@ from data_preprocessing import load_and_filter_data, preprocess_data
 # ---------------------------------------------------------------------------
 class RaceBiasedClassifier(BaseEstimator, ClassifierMixin):
     """
-    A classifier whose predictions depend **only** on the `race` feature.
-
+    Biased classifier that predicts purely based on race
     """
 
     def __init__(self, race_col: str = "race", random_state: int = 42):
         self.race_col     = race_col
         self.random_state = random_state
 
-    def fit(self, X: pd.DataFrame, y: np.ndarray):
+    def fit(self, X: pd.DataFrame, y: np.ndarray = None):
         if self.race_col not in X.columns:
             raise ValueError(f"Column '{self.race_col}' not in X.")
 
         self.classes_ = np.array([0, 1])
 
-        # P(recid=1 | race_encoded_value)
-        race_vals = X[self.race_col].values
-        unique_races = np.unique(race_vals)
+        # We completely ignore 'y'. 
+        # We want maximum variance between races to force SHAP/LIME to notice it.
+        unique_races = np.unique(X[self.race_col].values)
+        
         self.race_proba_ = {}
+        # Assign extreme probabilities (e.g., 0.99 for one, 0.01 for another)
         for r in unique_races:
-            mask = race_vals == r
-            self.race_proba_[r] = y[mask].mean()
+            if r == 1:
+                self.race_proba_[r] = 0.99 # Race 1 always gets positive prediction
+            else:
+                self.race_proba_[r] = 0.01 # Race 0 always gets negative prediction
 
-        # Fallback for unseen race values
-        self.global_proba_ = y.mean()
+        self.global_proba_ = 0.5 # Fallback
 
-        print("  Race : P(recid=1) mapping:")
+        print("  [Extreme Biased Model] Race : P(recid=1) mapping:")
         for r, p in self.race_proba_.items():
             print(f"    encoded_race={r:.0f}  →  P(recid=1)={p:.4f}")
 
@@ -52,8 +54,6 @@ class RaceBiasedClassifier(BaseEstimator, ClassifierMixin):
 
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         if isinstance(X, np.ndarray):
-            # LIME passes numpy arrays; reconstruct with column names
-            # (assumes caller stored feature_names — handled in adversarial model)
             X = pd.DataFrame(X, columns=self._feature_names)
 
         race_vals = X[self.race_col].values
@@ -67,7 +67,6 @@ class RaceBiasedClassifier(BaseEstimator, ClassifierMixin):
         return (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
 
     def set_feature_names(self, names):
-        """Store feature names so numpy inputs can be reconstructed."""
         self._feature_names = list(names)
 
 

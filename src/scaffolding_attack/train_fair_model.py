@@ -183,16 +183,12 @@ def train_fair_model():
     dpd = demographic_parity_difference(
         y_test, y_pred, sensitive_features=race_test
     )
-    eod = equalized_odds_difference(
-        y_test, y_pred, sensitive_features=race_test
-    )
 
     print(f"\n{'='*50}")
     print("  Fair Model (f_fair) — Evaluation Metrics")
     print(f"{'='*50}")
     print(f"  Test Accuracy               : {acc:.4f}")
     print(f"  Demographic Parity Diff     : {dpd:.4f}")
-    print(f"  Equalized Odds Diff         : {eod:.4f}")
     print(f"\n  Classification Report:")
     print(classification_report(y_test, y_pred, target_names=["No Recid", "Recid"]))
 
